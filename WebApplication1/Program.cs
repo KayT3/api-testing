@@ -10,17 +10,11 @@ var browser = await playwright.Chromium.LaunchAsync(
     new BrowserTypeLaunchOptions { Headless = true });
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+
 
 var app = builder.Build();
 app.Urls.Add("http://0.0.0.0:8111");
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
 
-app.UseHttpsRedirection();
 
 app.MapPost("/echoBody", async (HttpRequest req) =>
 {
