@@ -21,7 +21,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.Urls.Add("http://0.0.0.0:8111");
 
 app.MapPost("/echoBody", async (HttpRequest req) =>
 {
