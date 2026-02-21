@@ -13,7 +13,7 @@ var browser = await playwright.Chromium.LaunchAsync(
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
-
+app.Urls.Add("http://0.0.0.0:8111");
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -24,9 +24,9 @@ app.UseHttpsRedirection();
 
 app.MapPost("/echoBody", async (HttpRequest req) =>
 {
+    Console.WriteLine(req.Host.Host);
     using var reader = new StreamReader(req.Body);
     var body = await reader.ReadToEndAsync();
-    Console.WriteLine(body);
     return Results.Text(body, "application/json");
 });
 
@@ -93,17 +93,18 @@ app.MapGet("/html2canvas/{b64}.png", async (string b64) =>
 
     var page = await browser.NewPageAsync();
     var html2CanvasJs = await GetResource("html2canvas.js");
+    var styleJs = await GetResource("style.js");
     await page.GotoAsync(req.url, new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
     await page.AddScriptTagAsync(new() { Content = html2CanvasJs });
     await page.WaitForFunctionAsync("() => typeof window.html2canvas !== 'undefined'");
-
+    
     var script = @"
 async ({ selector }) => {
     const element = document.querySelector(selector);
     if (!element) return null;
 
     for (let scale = 1.0; scale >= 0.3; scale -= 0.1) {
-        const canvas = await html2canvas(element, { scale,backgroundColor: '#000000' });
+        const canvas = await html2canvas(element, { scale,backgroundColor: '#000000',useCORS: true,allowTaint: false, });
         const res = canvas.toDataURL('image/png');
 
         if (res && res !== 'data:,') {
@@ -114,17 +115,21 @@ async ({ selector }) => {
     return null;
 }
 ";
-    await page.EvaluateAsync(req.scripts);
-    await page.WaitForTimeoutAsync(150);
+    await page.EvaluateAsync(styleJs, req);
+
+
+    await page.WaitForTimeoutAsync(1000);
+
     var r = await page.EvaluateAsync<string>(
         script,
         new { selector = req.qSelector }
     );
+    await page.CloseAsync();
     if (string.IsNullOrEmpty(r) || !r.StartsWith("data:image/png;base64,"))
     {
         return await ImageResponse(req.fallbackImage);
     }
-    
+
     var base64 = r.Replace("data:image/png;base64,", "");
 
     try
@@ -136,7 +141,6 @@ async ({ selector }) => {
     {
         return await ImageResponse(req.fallbackImage);
     }
-    
 });
 
 async Task<string> GetResource(string name)
@@ -149,4 +153,10 @@ async Task<string> GetResource(string name)
 
 app.Run();
 
-public record Html2CanvasReq(string qSelector, string url, string scripts, string fallbackImage);
+public record Html2CanvasReq(string qSelector, string url, string? scripts, string fallbackImage,Html2CanvasReqStyle? style);
+public record Html2CanvasReqStyle(
+    List<string> hide,
+    string fontSize,
+    string addMarginTopTo,
+    string marginTop
+);
