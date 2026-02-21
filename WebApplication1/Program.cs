@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 var http = new HttpClient();
 var playwright = await Playwright.CreateAsync();
 var browser = await playwright.Chromium.LaunchAsync(
-    new BrowserTypeLaunchOptions { Headless = false });
+    new BrowserTypeLaunchOptions { Headless = true });
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
