@@ -4,6 +4,6 @@
       context: .
       dockerfile: WebApplication1/Dockerfile
     ports:
-      - "8111:8080"
+      - "8111:8111"
     environment:
       - ASPNETCORE_URLS=http://0.0.0.0:8080
