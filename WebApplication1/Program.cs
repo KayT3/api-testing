@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 var http = new HttpClient();
 var playwright = await Playwright.CreateAsync();
 var browser = await playwright.Chromium.LaunchAsync(
-    new BrowserTypeLaunchOptions { Headless = true });
+    new BrowserTypeLaunchOptions { Headless = false });
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 
@@ -91,7 +91,7 @@ app.MapGet("/html2canvas/{b64}.png", async (string b64) =>
     await page.GotoAsync(req.url, new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
     await page.AddScriptTagAsync(new() { Content = html2CanvasJs });
     await page.WaitForFunctionAsync("() => typeof window.html2canvas !== 'undefined'");
-    
+
     var script = @"
 async ({ selector }) => {
     const element = document.querySelector(selector);
@@ -147,10 +147,19 @@ async Task<string> GetResource(string name)
 
 app.Run();
 
-public record Html2CanvasReq(string qSelector, string url, string? scripts, string fallbackImage,Html2CanvasReqStyle? style);
+public record Html2CanvasReq(
+    string qSelector,
+    string url,
+    string? scripts,
+    string fallbackImage,
+    Html2CanvasReqStyle? style);
+
 public record Html2CanvasReqStyle(
     List<string> hide,
     string fontSize,
     string addMarginTopTo,
-    string marginTop
+    string marginTop,
+    string? marginStart,
+    string? marginEnd,
+    string? marginBottom
 );
