@@ -1,5 +1,8 @@
 ﻿async (req) => {
-    let el = document.querySelector(req.qSelector)    
+    let el = document.querySelector(req.qSelector)
+    if(req.style.padding){
+        el.style.padding = req.style.padding
+    }
     req.style.hide.forEach((el) => {
         document.querySelector(el).hidden = true
     })
@@ -18,5 +21,6 @@
         if(req.style.marginBottom){
             el.style.marginBottom=req.style.marginBottom
         }
+        
     })
 }
