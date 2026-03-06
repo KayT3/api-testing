@@ -6,7 +6,8 @@ COPY . .
 WORKDIR "/src/WebApplication1"
 RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
 
-FROM mcr.microsoft.com/playwright/dotnet:v1.58.0-noble AS final
+from mcr.microsoft.com/playwright/dotnet:v1.58.0-noble as final
+#from mcr.microsoft.com/playwright/dotnet:v1.58.0-noble as final
 WORKDIR /app
 
 # Install ASP.NET Core runtime 9.x into /usr/share/dotnet (same place dotnet already lives)
