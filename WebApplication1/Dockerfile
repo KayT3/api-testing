@@ -24,6 +24,6 @@ ENV PATH=/usr/share/dotnet:$PATH
 COPY --from=build /app/publish .
 
 ENV ASPNETCORE_URLS=http://0.0.0.0:8080
-RUN pwsh bin/Debug/netX/playwright.ps1 install msedge
+RUN pwsh playwright.ps1 install msedge
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "WebApplication1.dll"]
