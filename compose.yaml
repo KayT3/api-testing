@@ -6,6 +6,8 @@
     ports:
       - "8111:8111"
     environment:
-      - ASPNETCORE_URLS=http://0.0.0.0:8080
+      - ASPNETCORE_URLS=http://0.0.0.0:8111
+      - DISPLAY=:1
     volumes:
-      - ./uBlock:/uBlock
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    ipc: host
