@@ -10,4 +10,5 @@
       - DISPLAY=:1
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
+      - ./uBlock:/uBlock
     ipc: host
