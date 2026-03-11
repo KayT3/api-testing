@@ -4,7 +4,9 @@
         el.style.padding = req.style.padding
     }
     req.style.hide.forEach((el) => {
-        document.querySelector(el).hidden = true
+        document.querySelectorAll(el).forEach(ee=>{
+            ee.hidden = true
+        })
     })
     el.style.fontSize = req.style.fontSize
     el.style.color="white"
