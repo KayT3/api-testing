@@ -129,7 +129,7 @@ app.MapGet("/html2canvas/{b64}.png", async (string b64) =>
             }
         }
     );
-    var page = vb.Pages.FirstOrDefault() ?? await browser.NewPageAsync();
+    var page = vb.Pages.FirstOrDefault() ?? await vb.NewPageAsync();
 
     var html2CanvasJs = await GetResource("html2canvas.js");
     var styleJs = await GetResource("style.js");
