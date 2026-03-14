@@ -139,7 +139,7 @@ app.MapGet("/html2canvas/{b64}.png", async (string b64) =>
         );
     }
     page.Response += (_, response) => { Console.WriteLine($"RES {response.Status} {response.Url}"); };
-    await page.GotoAsync(req.url, new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle, Timeout = 1000 * 60 });
+    await page.GotoAsync(req.url, new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle, Timeout = 1000 * 15 });
 
     await page.AddScriptTagAsync(new() { Content = html2CanvasJs });
     await page.WaitForFunctionAsync("() => typeof window.html2canvas !== 'undefined'");
