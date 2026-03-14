@@ -68,6 +68,8 @@ async Task<IResult> ImageResponse(string url)
 
 app.MapGet("/html2canvas/{b64}.png", async (string b64) =>
 {
+    var cacheDir = Path.Combine(AppContext.BaseDirectory, "cache");
+    Console.WriteLine(cacheDir);
     string json;
     try
     {
