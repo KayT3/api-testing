@@ -11,4 +11,5 @@
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
       - ./uBlock:/uBlock
+      - ./cache:/app/cache
     ipc: host

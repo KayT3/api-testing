@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Playwright;
@@ -65,11 +66,22 @@ async Task<IResult> ImageResponse(string url)
         return Results.BadRequest("invalid");
     }
 }
-
+var cacheDir = Path.Combine(AppContext.BaseDirectory, "cache");
+Directory.CreateDirectory(cacheDir);
+static string Hash(string input)
+{
+    var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(input));
+    return Convert.ToHexString(bytes);
+}
 app.MapGet("/html2canvas/{b64}.png", async (string b64) =>
 {
-    var cacheDir = Path.Combine(AppContext.BaseDirectory, "cache");
-    Console.WriteLine(cacheDir);
+    var key = Hash(b64);
+    var cacheFile = Path.Combine(cacheDir, key + ".png");
+    if (File.Exists(cacheFile))
+    {
+        var bytes = await File.ReadAllBytesAsync(cacheFile);
+        return Results.File(bytes, "image/png");
+    }
     string json;
     try
     {
@@ -152,6 +164,7 @@ async ({ selector }) => {
     try
     {
         var bytes = Convert.FromBase64String(base64);
+        await File.WriteAllBytesAsync(cacheFile, bytes);
         return Results.File(bytes, "image/png");
     }
     catch
