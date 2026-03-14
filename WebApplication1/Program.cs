@@ -131,6 +131,8 @@ async ({ selector }) => {
     catch (Exception e)
     {
         Console.WriteLine(e.Message);
+        Console.WriteLine(req.url);
+        
     }
 
     var r = await page.EvaluateAsync<string>(
