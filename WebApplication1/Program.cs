@@ -6,22 +6,22 @@ using Microsoft.Playwright;
 
 var builder = WebApplication.CreateBuilder(args);
 var http = new HttpClient();
-// var playwright = await Playwright.CreateAsync();
+var playwright = await Playwright.CreateAsync();
 
-SemaphoreSlim browserLock = new(1, 1);
-// var browser = await playwright.Chromium.LaunchPersistentContextAsync(
-//     "./profile",
-//     new BrowserTypeLaunchPersistentContextOptions
-//     {
-//         Headless = false,
-//         Channel = "msedge",
-//         Args = new[]
-//         {
-//             @"--disable-extensions-except=/uBlock",
-//             @"--load-extension=/uBlock"
-//         }
-//     }
-// );
+
+var browser = await playwright.Chromium.LaunchPersistentContextAsync(
+    "./profile",
+    new BrowserTypeLaunchPersistentContextOptions
+    {
+        Headless = false,
+        Channel = "msedge",
+        Args = new[]
+        {
+            @"--disable-extensions-except=/uBlock",
+            @"--load-extension=/uBlock"
+        }
+    }
+);
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 
@@ -115,27 +115,29 @@ app.MapGet("/html2canvas/{b64}.png", async (string b64) =>
         return await ImageResponse(
             "https://th.bing.com/th/id/OIP.YU4UmFmovboXAc9VYet8ZwHaE4?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3");
 
-    await browserLock.WaitAsync();
-    var playwright = await Playwright.CreateAsync();
-    var vb = await playwright.Chromium.LaunchPersistentContextAsync(
-        "./profile",
-        new BrowserTypeLaunchPersistentContextOptions
-        {
-            Headless = false,
-            Channel = "msedge",
-            Args = new[]
-            {
-                @"--disable-extensions-except=/uBlock",
-                @"--load-extension=/uBlock"
-            }
-        }
-    );
-    var page = vb.Pages.FirstOrDefault() ?? await vb.NewPageAsync();
+
+
+    
+    var page =  await browser.NewPageAsync();
 
     var html2CanvasJs = await GetResource("html2canvas.js");
     var styleJs = await GetResource("style.js");
-    page.Request += (_, request) => { Console.WriteLine($"REQ {request.Method} {request.Url}"); };
-
+    bool gotCloudflare = false;
+    page.Request += (_, request) =>
+    {
+        Console.WriteLine($"REQ {request.Method} {request.Url}");
+        if (request.Url.Contains("challenges.cloudflare.com"))
+        {
+            gotCloudflare = true;
+        }
+    };
+    if (gotCloudflare)
+    {
+        return Results.Problem(
+            detail: "Cloudflare challenge detected",
+            statusCode: 500
+        );
+    }
     page.Response += (_, response) => { Console.WriteLine($"RES {response.Status} {response.Url}"); };
     await page.GotoAsync(req.url, new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle, Timeout = 1000 * 60 });
 
@@ -176,9 +178,7 @@ async ({ selector }) => {
         new { selector = req.qSelector }
     );
     await page.CloseAsync();
-    await vb.CloseAsync();
-    playwright.Dispose();
-    browserLock.Release();
+    
     if (string.IsNullOrEmpty(r) || !r.StartsWith("data:image/png;base64,"))
     {
         return await ImageResponse(req.fallbackImage);
