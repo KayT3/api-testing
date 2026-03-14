@@ -6,7 +6,7 @@ using Microsoft.Playwright;
 
 var builder = WebApplication.CreateBuilder(args);
 var http = new HttpClient();
-var playwright = await Playwright.CreateAsync();
+// var playwright = await Playwright.CreateAsync();
 
 SemaphoreSlim browserLock = new(1, 1);
 // var browser = await playwright.Chromium.LaunchPersistentContextAsync(
@@ -116,6 +116,7 @@ app.MapGet("/html2canvas/{b64}.png", async (string b64) =>
             "https://th.bing.com/th/id/OIP.YU4UmFmovboXAc9VYet8ZwHaE4?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3");
 
     await browserLock.WaitAsync();
+    var playwright = await Playwright.CreateAsync();
     var vb = await playwright.Chromium.LaunchPersistentContextAsync(
         "./profile",
         new BrowserTypeLaunchPersistentContextOptions
@@ -174,8 +175,9 @@ async ({ selector }) => {
         script,
         new { selector = req.qSelector }
     );
-
+    await page.CloseAsync();
     await vb.CloseAsync();
+    playwright.Dispose();
     browserLock.Release();
     if (string.IsNullOrEmpty(r) || !r.StartsWith("data:image/png;base64,"))
     {
