@@ -28,6 +28,6 @@ ENV PATH=/usr/share/dotnet:$PATH
 ENV ASPNETCORE_URLS=http://0.0.0.0:8080
 
 COPY --from=build /app/publish .
-
+COPY ./uBlock /uBlock
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "WebApplication1.dll"]
