@@ -9,19 +9,19 @@ var http = new HttpClient();
 var playwright = await Playwright.CreateAsync();
 
 SemaphoreSlim browserLock = new(1, 1);
-var browser = await playwright.Chromium.LaunchPersistentContextAsync(
-    "./profile",
-    new BrowserTypeLaunchPersistentContextOptions
-    {
-        Headless = false,
-        Channel = "msedge",
-        Args = new[]
-        {
-            @"--disable-extensions-except=/uBlock",
-            @"--load-extension=/uBlock"
-        }
-    }
-);
+// var browser = await playwright.Chromium.LaunchPersistentContextAsync(
+//     "./profile",
+//     new BrowserTypeLaunchPersistentContextOptions
+//     {
+//         Headless = false,
+//         Channel = "msedge",
+//         Args = new[]
+//         {
+//             @"--disable-extensions-except=/uBlock",
+//             @"--load-extension=/uBlock"
+//         }
+//     }
+// );
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 
@@ -174,8 +174,9 @@ async ({ selector }) => {
         script,
         new { selector = req.qSelector }
     );
-    browserLock.Release();
+
     await vb.CloseAsync();
+    browserLock.Release();
     if (string.IsNullOrEmpty(r) || !r.StartsWith("data:image/png;base64,"))
     {
         return await ImageResponse(req.fallbackImage);
