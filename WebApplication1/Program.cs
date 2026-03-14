@@ -8,9 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 var http = new HttpClient();
 var playwright = await Playwright.CreateAsync();
 
-SemaphoreSlim  browserLock = new(1, 1);
+SemaphoreSlim browserLock = new(1, 1);
 var browser = await playwright.Chromium.LaunchPersistentContextAsync(
-    "./profile", 
+    "./profile",
     new BrowserTypeLaunchPersistentContextOptions
     {
         Headless = false,
@@ -66,13 +66,16 @@ async Task<IResult> ImageResponse(string url)
         return Results.BadRequest("invalid");
     }
 }
+
 var cacheDir = Path.Combine(AppContext.BaseDirectory, "cache");
 Directory.CreateDirectory(cacheDir);
+
 static string Hash(string input)
 {
     var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(input));
     return Convert.ToHexString(bytes);
 }
+
 app.MapGet("/html2canvas/{b64}.png", async (string b64) =>
 {
     var key = Hash(b64);
@@ -82,6 +85,7 @@ app.MapGet("/html2canvas/{b64}.png", async (string b64) =>
         var bytes = await File.ReadAllBytesAsync(cacheFile);
         return Results.File(bytes, "image/png");
     }
+
     string json;
     try
     {
@@ -113,20 +117,14 @@ app.MapGet("/html2canvas/{b64}.png", async (string b64) =>
 
     await browserLock.WaitAsync();
     var page = browser.Pages.FirstOrDefault() ?? await browser.NewPageAsync();
-    
+
     var html2CanvasJs = await GetResource("html2canvas.js");
     var styleJs = await GetResource("style.js");
-    page.Request += (_, request) =>
-    {
-        Console.WriteLine($"REQ {request.Method} {request.Url}");
-    };
+    page.Request += (_, request) => { Console.WriteLine($"REQ {request.Method} {request.Url}"); };
 
-    page.Response += (_, response) =>
-    {
-        Console.WriteLine($"RES {response.Status} {response.Url}");
-    };
-    await page.GotoAsync(req.url, new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle,Timeout = 1000*60});
-    
+    page.Response += (_, response) => { Console.WriteLine($"RES {response.Status} {response.Url}"); };
+    await page.GotoAsync(req.url, new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle, Timeout = 1000 * 60 });
+
     await page.AddScriptTagAsync(new() { Content = html2CanvasJs });
     await page.WaitForFunctionAsync("() => typeof window.html2canvas !== 'undefined'");
 
@@ -157,14 +155,13 @@ async ({ selector }) => {
     {
         Console.WriteLine(e.Message);
         Console.WriteLine(req.url);
-        
     }
 
     var r = await page.EvaluateAsync<string>(
         script,
         new { selector = req.qSelector }
     );
-    await page.CloseAsync();
+    browserLock.Release();
     if (string.IsNullOrEmpty(r) || !r.StartsWith("data:image/png;base64,"))
     {
         return await ImageResponse(req.fallbackImage);
