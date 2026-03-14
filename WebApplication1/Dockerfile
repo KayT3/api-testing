@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certifi
 ENV DOTNET_ROOT=/usr/share/dotnet
 ENV PATH=/usr/share/dotnet:$PATH
 ENV ASPNETCORE_URLS=http://0.0.0.0:8080
-RUN pwsh playwright.ps1 install msedge
+RUN pwsh /ms-playwright/playwright.ps1 install msedge
 COPY --from=build /app/publish .
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "WebApplication1.dll"]
