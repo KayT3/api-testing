@@ -122,10 +122,16 @@ async ({ selector }) => {
     return null;
 }
 ";
-    await page.EvaluateAsync(styleJs, req);
-
-
-    await page.WaitForTimeoutAsync(1000);
+    Console.WriteLine(req.qSelector);
+    try
+    {
+        await page.EvaluateAsync(styleJs, req);
+        await page.WaitForTimeoutAsync(1000);
+    }
+    catch (Exception e)
+    {
+        Console.WriteLine(e.Message);
+    }
 
     var r = await page.EvaluateAsync<string>(
         script,
