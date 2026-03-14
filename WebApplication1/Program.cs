@@ -116,7 +116,20 @@ app.MapGet("/html2canvas/{b64}.png", async (string b64) =>
             "https://th.bing.com/th/id/OIP.YU4UmFmovboXAc9VYet8ZwHaE4?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3");
 
     await browserLock.WaitAsync();
-    var page = browser.Pages.FirstOrDefault() ?? await browser.NewPageAsync();
+    var vb = await playwright.Chromium.LaunchPersistentContextAsync(
+        "./profile",
+        new BrowserTypeLaunchPersistentContextOptions
+        {
+            Headless = false,
+            Channel = "msedge",
+            Args = new[]
+            {
+                @"--disable-extensions-except=/uBlock",
+                @"--load-extension=/uBlock"
+            }
+        }
+    );
+    var page = vb.Pages.FirstOrDefault() ?? await browser.NewPageAsync();
 
     var html2CanvasJs = await GetResource("html2canvas.js");
     var styleJs = await GetResource("style.js");
@@ -162,6 +175,7 @@ async ({ selector }) => {
         new { selector = req.qSelector }
     );
     browserLock.Release();
+    await vb.CloseAsync();
     if (string.IsNullOrEmpty(r) || !r.StartsWith("data:image/png;base64,"))
     {
         return await ImageResponse(req.fallbackImage);
