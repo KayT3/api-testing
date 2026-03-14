@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 var http = new HttpClient();
 var playwright = await Playwright.CreateAsync();
 
-
+SemaphoreSlim  browserLock = new(1, 1);
 var browser = await playwright.Chromium.LaunchPersistentContextAsync(
     "./profile", 
     new BrowserTypeLaunchPersistentContextOptions
@@ -111,8 +111,9 @@ app.MapGet("/html2canvas/{b64}.png", async (string b64) =>
         return await ImageResponse(
             "https://th.bing.com/th/id/OIP.YU4UmFmovboXAc9VYet8ZwHaE4?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3");
 
-
-    var page = await browser.NewPageAsync();
+    await browserLock.WaitAsync();
+    var page = browser.Pages.FirstOrDefault() ?? await browser.NewPageAsync();
+    
     var html2CanvasJs = await GetResource("html2canvas.js");
     var styleJs = await GetResource("style.js");
     page.Request += (_, request) =>
