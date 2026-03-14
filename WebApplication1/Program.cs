@@ -103,7 +103,7 @@ app.MapGet("/html2canvas/{b64}.png", async (string b64) =>
     var page = await browser.NewPageAsync();
     var html2CanvasJs = await GetResource("html2canvas.js");
     var styleJs = await GetResource("style.js");
-    await page.GotoAsync(req.url, new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded,Timeout = 1000*60});
+    await page.GotoAsync(req.url, new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle,Timeout = 1000*60});
     await page.AddScriptTagAsync(new() { Content = html2CanvasJs });
     await page.WaitForFunctionAsync("() => typeof window.html2canvas !== 'undefined'");
 
